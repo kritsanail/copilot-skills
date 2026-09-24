@@ -3,6 +3,7 @@
 import { createHash } from "node:crypto";
 import { spawnSync } from "node:child_process";
 import { existsSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from "node:fs";
+import { homedir } from "node:os";
 import { basename, dirname, extname, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -101,7 +102,9 @@ writeJson(join(outputDir, "sbom.cdx.json"), sbom);
 writeJson(join(outputDir, "summary.json"), summary);
 writeFileSync(join(outputDir, "dependency-audit.md"), renderMarkdown(summary, unused, vulnerabilities), "utf8");
 
-const python = findCommand([process.env.PYTHON, "python3", "python"]);
+const toolCache = process.env.DEPENDENCY_AUDIT_TOOL_CACHE || join(homedir(), "Library", "Caches", "dependency-audit");
+const managedPython = join(toolCache, "python", "bin", "python3");
+const python = findCommand([process.env.PYTHON, managedPython, "python3", "python"]);
 let pdfStatus = { status: "skipped", reason: "Python was not found" };
 if (python) {
   const result = spawnSync(python, [join(scriptDir, "render_pdf.py"), join(outputDir, "summary.json"), join(outputDir, "dependency-audit.pdf")], {

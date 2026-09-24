@@ -20,15 +20,33 @@ Key capabilities:
 - Node.js 18 or later for the detector and Node.js adapter
 - A `package.json` file for Node.js projects; a supported lockfile improves package-manager and resolved-version detection
 - npm, pnpm, or Yarn, according to the project's lockfile
-- Python 3 and `reportlab` for PDF generation
+- Python 3 and `reportlab` for PDF generation; the bundled macOS setup script can install and configure them
 
-Install the PDF dependency:
+### Automatic macOS setup
+
+Check whether PDF support is ready:
 
 ```bash
-python3 -m pip install reportlab
+bash .github/skills/dependency-audit/scripts/setup_macos.sh --check
 ```
 
-If `reportlab` is unavailable, the audit, Markdown report, JSON results, and SBOM still work. PDF generation is reported as skipped.
+Install the PDF toolchain:
+
+```bash
+bash .github/skills/dependency-audit/scripts/setup_macos.sh --install
+```
+
+The setup script:
+
+1. Uses an existing `python3` installation when available.
+2. Runs `brew install python` when Python is missing and Homebrew is available.
+3. Never installs Homebrew automatically.
+4. Creates an isolated virtual environment at `~/Library/Caches/dependency-audit/python`.
+5. Installs `reportlab` from this skill's `requirements.txt`.
+
+The audit script discovers this managed environment automatically. To use a different cache location, set `DEPENDENCY_AUDIT_TOOL_CACHE`. To use a specific interpreter, set `PYTHON`.
+
+Installing Python or Python packages changes the local machine and can require network access. Copilot should ask for approval before running the installation command. If PDF support is unavailable or installation is declined, the audit, Markdown report, JSON results, and SBOM still work; PDF generation is reported as skipped.
 
 ## Install for VS Code
 
@@ -49,7 +67,8 @@ The resulting structure must be:
 ├── requirements.txt
 └── scripts/
     ├── audit.mjs
-    └── render_pdf.py
+    ├── render_pdf.py
+    └── setup_macos.sh
 ```
 
 ### Personal installation
